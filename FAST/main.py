@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from typing import Optional
 
 app= FastAPI(
@@ -18,55 +18,34 @@ usuarios=[
 
 #crear primera ruta o EndPoint
 @app.get("/", tags=["Inicio"])#declarar ruta del servidor
-
 def home(): #funcion que se ejecutará cuando se entre a la ruta
     return {"hello": "world fastApi"}#mensaje que se mostrará en la ruta
 
-#crear segunda ruta o EndPoint
-@app.get("/promedio", tags=["Mi calificación TAI"])#declarar ruta del servidor
+    
+#EndPoint Consultar Usuarios (GET)
+@app.get("/todosUsuarios/", tags=["Operaciones CRUD"]) #declarar ruta del servidor
+def leer(): #funcion que se ejecutará cuando se entre a la ruta
+    return {"Usuarios Registrados: ":usuarios} #se concatena la lista de usuarios
 
-def promedio(): #funcion que se ejecutará cuando se entre a la ruta
-    return 10.5
+#EndPoint POST
+@app.post("/usuarios/", tags=["Operaciones CRUD"]) #declarar ruta del servidor
+#primero se pide el parametro y luego el tipo de datp que estamos usando
+def guardar(usuario:dict): #se guarda como usuario diccionario para pedir todos los usuarios juntos
+    for usr in usuarios:
+        #si el usuario de la bd es igual al usuario de la peticion
+        if usr["id"]==usuario.get("id"):
+            #entonces se mandará el mensaje de error que ya existe
+            raise HTTPException(status_code=400, detail="El usuario ya existe") #raise sirve para marcar un punto de quiebre (excepcion) en un ciclo
+    
 
-#crear tercer ruta o endpoint con parametro obligatorio
-@app.get("/usuario/{id}", tags=["Parámetro obligatorio"])#declarar ruta del servidor
+    usuarios.append(usuario) #se agrega el usuario a la lista de usuarios
+    return usuario
 
-def consultausuario(id:int): #funcion que se ejecutará cuando se entre a la ruta
-    #caso ficticio de consulta a base de datos
-    return {"Se encontró el usuario": id}
-
-#crear cuarta ruta o endpoint con parametro opcional
-@app.get("/usuario2/", tags=["Parámetro opcional"])#declarar ruta del servidor #se quita el parametro de {}
-
-def consultausuario2(id:Optional[int]=None): #funcion que se ejecutará cuando se entre a la ruta
-    if id is not None:#validar si se proporcionó el id
-        for usuario in usuarios:#iterar dentro del for
-            if usuario["id"]==id:#se verifica si viene el id con el parametro que esta ahi
-                return {"mensaje":"usuario encontrado", "El usuario es:":usuario} #mensaje si encuentra el id,usuario
-        return {"mensaje":f"No se ha encontrado el id: {id}"} #mensaje si no encuentra el id,usuario
-   
-    return {"mensaje":"No se proporcionó el id"} #mensaje si no se proporciona el id
-
-
-#crear cuarto endpoint con varios parametro opcionales
-@app.get("/usuarios/", tags=["3 parámetros opcionales"])
-async def consulta_usuarios(
-        usuario_id: Optional[int] = None,
-        nombre: Optional[str] = None,
-        edad: Optional[int] = None
-        ):
-        
-    resultados = []
-
-    for usuario in usuarios:
-        if (
-            (usuario_id is None or usuario["id"] == usuario_id) and
-            (nombre is None or usuario["nombre"].lower() == nombre.lower()) and
-            (edad is None or usuario["edad"] == edad)
-        ):
-            resultados.append(usuario)
-
-    if resultados:
-        return {"usuarios_encontrados": resultados}
-    else:
-        return {"mensaje": "No se encontraron usuarios que coincidan con los parámetros proporcionados."}
+#EndPoint PUT
+@app.put("/usuarios/{id}", tags=["Operaciones CRUD"]) #declarar ruta del servidor
+def actualizar(id:int, usuarioActualizado:dict):
+    for index, usr in enumerate(usuarios):
+        if usr["id"]==id:
+            usuarios[index].update(usuarioActualizado) #funcion estructura de datos para las vistas
+            return usuarios [index]
+    raise HTTPException(status_code=404, detail="Usuario no encontrado")
