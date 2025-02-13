@@ -49,3 +49,14 @@ def actualizar(id:int, usuarioActualizado:dict):
             usuarios[index].update(usuarioActualizado) #funcion estructura de datos para las vistas
             return usuarios [index]
     raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+#EndPoint DELETE
+@app.delete("/usuarios/{id}", tags=["Operaciones CRUD"]) #declarar ruta del servidor
+def eliminar(id:int, usuarioEliminado:dict):
+    for index, usr in enumerate (usuarios):
+        if usr["id"]==id:
+            del usuarios[index] #funcion estructura de datos para las vistas
+            return ("El usuario ha sido eliminado.")
+        else:
+            raise HTTPException(status_code=404, detail="El usuario no se ha encontrado.")
+    
