@@ -28,3 +28,12 @@ tareas=[
 @app.get("/Tareas/", tags=["TAREAS"]) #declarar ruta del servidor
 def mostrar(): #funcion que se ejecutará cuando se entre a la ruta
     return {"Tareas registradas: ":tareas} #se concatena la lista de tareas
+
+#EndPoint Consultar tarea específica (GET)
+@app.get("/Tareas/{id}", tags=["TAREAS"]) #declarar ruta del servidor
+def obtener(id:int): #funcion que se ejecutará cuando se entre a la ruta
+    for tarea in tareas:
+        if tarea["id"]==id:
+            return tarea
+    return {"La tarea no ha sido encontrada"}
+
