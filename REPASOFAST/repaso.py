@@ -57,4 +57,12 @@ def actualizar(id:int, tareactualizada:dict): #funcion que se ejecutará cuando 
     raise HTTPException(status_code=404, detail="La tarea no se ha encontrado")
 
 
-        
+#Endpoint eliminar tarea (DELETE)
+@app.delete("/Tareas/{id}", tags=["TAREAS"]) #declarar ruta del servidor
+def eliminar(id:int):
+    for index, tarea in enumerate(tareas):
+        if tarea["id"]==id: #se comprueba si el id ingresado corresponde a una tarea ya existente
+            del tareas[index] #se elimina la tarea 
+            return ("La tarea ha sido eliminada")
+        else:
+            raise HTTPException(status_code=404, detail="La tarea no se ha encontrado")
