@@ -27,13 +27,13 @@ tareas=[
 #EndPoint Consultar todas las tareas (GET)
 @app.get("/Tareas/", tags=["TAREAS"]) #declarar ruta del servidor
 def mostrar(): #funcion que se ejecutará cuando se entre a la ruta
-    return {"Tareas registradas: ":tareas} #se concatena la lista de tareas
+    return {"Tareas registradas: ":tareas} #se muestra la lista de tareas
 
 #EndPoint Consultar tarea específica (GET)
 @app.get("/Tareas/{id}", tags=["TAREAS"]) #declarar ruta del servidor
 def obtener(id:int): #funcion que se ejecutará cuando se entre a la ruta
     for tarea in tareas:
-        if tarea["id"]==id:
+        if tarea["id"]==id:#si se encuentra la tarea, se le mostrará al usuario
             return tarea
     return {"La tarea no ha sido encontrada"}
 
@@ -47,3 +47,14 @@ def crear(tareanueva:dict): #funcion que se ejecutará cuando se entre a la ruta
     tareas.append(tareanueva) #si no, se agrega la nueva tarea a la bd
     return(tareanueva)
 
+#EndPoint actualizar tarea (PUT)
+@app.put("/Tareas/{id}", tags=["TAREAS"]) #declarar ruta del server 
+def actualizar(id:int, tareactualizada:dict): #funcion que se ejecutará cuando se entre a la ruta
+    for index, tarea in enumerate(tareas):
+        if tarea["id"]==id:
+            tareas[index].update(tareactualizada) #se encuentra la tarea solicitada y se actauliza
+            return tareas[index]
+    raise HTTPException(status_code=404, detail="La tarea no se ha encontrado")
+
+
+        
