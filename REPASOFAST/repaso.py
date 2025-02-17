@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from typing import Optional
 
 app= FastAPI(
@@ -9,16 +9,16 @@ app= FastAPI(
 
 tareas=[
     {
-        "id": 1, "titulo": "Estudiar para el examen", "descripcion": "Repasar los apuntes de TAI ", "vencimiento": "14-02-24", "Estado": "completada"
+        "id": 1, "titulo": "Estudiar para el examen", "descripcion": "Repasar los apuntes de TAI ", "vencimiento": "14-02-25", "estado": "completada"
     },
     {
-        "id": 2, "titulo": "Hacer mis tareas", "descripcion": "Realizar mis tareas", "vencimiento": "60-02-24", "Estado": "pendiente"
+        "id": 2, "titulo": "Hacer mis tareas", "descripcion": "Realizar mis tareas", "vencimiento": "06-02-25", "estado": "pendiente"
     },
     {
-        "id": 3, "titulo": "Terminar mi programa", "descripcion": "Terminar el programa de Fastapi", "vencimiento": "17-02-24", "Estado": "pendiente"
+        "id": 3, "titulo": "Terminar mi programa", "descripcion": "Terminar el programa de Fastapi", "vencimiento": "17-02-25", "estado": "pendiente"
     },
     {
-        "id": 4, "titulo": "Terminar mi exposición", "descripcion": "Preparar la exposición", "vencimiento": "22-02-24", "Estado": "completada"
+        "id": 4, "titulo": "Terminar mi exposición", "descripcion": "Preparar la exposición", "vencimiento": "22-02-25", "estado": "completada"
     }
 
 
@@ -36,4 +36,14 @@ def obtener(id:int): #funcion que se ejecutará cuando se entre a la ruta
         if tarea["id"]==id:
             return tarea
     return {"La tarea no ha sido encontrada"}
+
+#EndPoint crear nueva tarea (POST)
+@app.post("/Tareas/", tags=["TAREAS"]) #declarar ruta del servidor
+def crear(tareanueva:dict): #funcion que se ejecutará cuando se entre a la ruta
+    for tarea in tareas:
+        #si la tarea de la peticion ya existe en la bd
+        if tarea["id"]==tareanueva.get("id"):
+            raise HTTPException(status_code=400, detail="La tarea ya existe") #se mandará este mensaje 
+    tareas.append(tareanueva) #si no, se agrega la nueva tarea a la bd
+    return(tareanueva)
 
