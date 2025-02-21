@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
-from typing import Optional
+from typing import Optional, List
+from pydantic import BaseModel
 
 app= FastAPI(
     title="Mi primer API",
@@ -8,11 +9,17 @@ app= FastAPI(
 ) #mandar al constructor que queremos que tenga este objeto cuando se inicie
 #todo se hará a través de este objeto
 
+class modeloUsuario(BaseModel):
+    id:int
+    nombre:str
+    edad:int
+    correo: str
+
 usuarios=[
-    {"id":1, "nombre":"María Eugenia", "edad":"20"},
-    {"id":2, "nombre":"Karla", "edad":"22"},
-    {"id":3, "nombre":"Ivan", "edad":"25"},
-    {"id":4, "nombre":"Estela", "edad":"30"}
+    {"id":1, "nombre":"María Eugenia", "edad":"20","correo":"maru@example.com"},
+    {"id":2, "nombre":"Karla", "edad":"22","correo":"karla@example.com"},
+    {"id":3, "nombre":"Ivan", "edad":"25","correo":"ivan@example.com"},
+    {"id":4, "nombre":"Estela", "edad":"30","correo":"estela@example.com"}
 
 ]
 
@@ -23,17 +30,17 @@ def home(): #funcion que se ejecutará cuando se entre a la ruta
 
     
 #EndPoint Consultar Usuarios (GET)
-@app.get("/todosUsuarios/", tags=["Operaciones CRUD"]) #declarar ruta del servidor
+@app.get("/todosUsuarios/", response_model=List[modeloUsuario],tags=["Operaciones CRUD"]) #declarar ruta del servidor
 def leer(): #funcion que se ejecutará cuando se entre a la ruta
-    return {"Usuarios Registrados: ":usuarios} #se concatena la lista de usuarios
+    return usuarios
 
 #EndPoint POST
-@app.post("/usuarios/", tags=["Operaciones CRUD"]) #declarar ruta del servidor
+@app.post("/usuarios/", response_model=modeloUsuario, tags=["Operaciones CRUD"]) #declarar ruta del servidor
 #primero se pide el parametro y luego el tipo de datp que estamos usando
-def guardar(usuario:dict): #se guarda como usuario diccionario para pedir todos los usuarios juntos
+def guardar(usuario:modeloUsuario): #se guarda como usuario diccionario para pedir todos los usuarios juntos
     for usr in usuarios:
         #si el usuario de la bd es igual al usuario de la peticion
-        if usr["id"]==usuario.get("id"):
+        if usr["id"]==usuario.id:
             #entonces se mandará el mensaje de error que ya existe
             raise HTTPException(status_code=400, detail="El usuario ya existe") #raise sirve para marcar un punto de quiebre (excepcion) en un ciclo
     
@@ -42,17 +49,17 @@ def guardar(usuario:dict): #se guarda como usuario diccionario para pedir todos 
     return usuario
 
 #EndPoint PUT
-@app.put("/usuarios/{id}", tags=["Operaciones CRUD"]) #declarar ruta del servidor
-def actualizar(id:int, usuarioActualizado:dict):
+@app.put("/usuarios/{id}", response_model=modeloUsuario, tags=["Operaciones CRUD"]) #declarar ruta del servidor
+def actualizar(id:int, usuarioActualizado:modeloUsuario):
     for index, usr in enumerate(usuarios):
         if usr["id"]==id:
-            usuarios[index].update(usuarioActualizado) #funcion estructura de datos para las vistas
+            usuarios[index]= usuarioActualizado.model_dump() #funcion estructura de datos para las vistas
             return usuarios [index]
     raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
 #EndPoint DELETE
 @app.delete("/usuarios/{id}", tags=["Operaciones CRUD"]) #declarar ruta del servidor
-def eliminar(id:int, usuarioEliminado:dict):
+def eliminar(id:int, usuarioEliminado:modeloUsuario):
     for index, usr in enumerate (usuarios):
         if usr["id"]==id:
             del usuarios[index] #funcion estructura de datos para las vistas
