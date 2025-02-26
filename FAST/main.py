@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
-from typing import Optional, List
+from typing import  List
 from pydantic import BaseModel
+from models import modeloUsuario
 
 app= FastAPI(
     title="Mi primer API",
@@ -9,11 +10,6 @@ app= FastAPI(
 ) #mandar al constructor que queremos que tenga este objeto cuando se inicie
 #todo se hará a través de este objeto
 
-class modeloUsuario(BaseModel):
-    id:int
-    nombre:str
-    edad:int
-    correo: str
 
 usuarios=[
     {"id":1, "nombre":"María Eugenia", "edad":"20","correo":"maru@example.com"},
