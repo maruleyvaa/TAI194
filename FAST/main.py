@@ -1,8 +1,11 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from typing import  List
 from pydantic import BaseModel
 from models import modeloUsuario, modelAuth
 from genToken import creartoken
+from middleware import BearerJWT
+from fastapi.responses import JSONResponse
+
 
 app= FastAPI(
     title="Mi primer API",
@@ -26,19 +29,20 @@ def home(): #funcion que se ejecutará cuando se entre a la ruta
     return {"hello": "world fastApi"}#mensaje que se mostrará en la ruta
 
 
+
 #endpoint para generar token
 @app.post("/auth", tags=["Autentificación"]) #declarar ruta del servidor
 def auth(credenciales:modelAuth): #funcion que se ejecutará cuando se entre a la ruta
     if credenciales.correo=="maru@example.com" and credenciales.passw=="12345678":
         token:str = creartoken(credenciales.model_dump()) #se crea el token con las credenciales
         print(token)
-        return {"Aviso:":"Token generado"} #se manda el mensaje de que se generó el token
+        return JSONResponse(content=token) #se regresa el token
     else:
         return {"Aviso: ": "Credenciales incorrectas"}
 
     
 #EndPoint Consultar Usuarios (GET)
-@app.get("/todosUsuarios/", response_model=List[modeloUsuario],tags=["Operaciones CRUD"]) #declarar ruta del servidor
+@app.get("/todosUsuarios/", tags=["Operaciones CRUD"], dependencies=[Depends(BearerJWT())], response_model=List[modeloUsuario]) #declarar ruta del servidor
 def leer(): #funcion que se ejecutará cuando se entre a la ruta
     return usuarios
 
@@ -75,3 +79,6 @@ def eliminar(id:int, usuarioEliminado:modeloUsuario):
         else:
             raise HTTPException(status_code=404, detail="El usuario no se ha encontrado.")
     
+
+
+

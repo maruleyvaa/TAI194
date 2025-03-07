@@ -10,3 +10,4 @@ class modeloUsuario(BaseModel):
 class modelAuth(BaseModel):
     correo: EmailStr 
     passw: str = Field(..., min_length=8, strip_whitespace=True, description="Contraseña al menos de 8 caracteres")
+
