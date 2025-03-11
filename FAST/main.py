@@ -28,8 +28,6 @@ usuarios=[
 def home(): #funcion que se ejecutará cuando se entre a la ruta
     return {"hello": "world fastApi"}#mensaje que se mostrará en la ruta
 
-
-
 #endpoint para generar token
 @app.post("/auth", tags=["Autentificación"]) #declarar ruta del servidor
 def auth(credenciales:modelAuth): #funcion que se ejecutará cuando se entre a la ruta
@@ -39,12 +37,12 @@ def auth(credenciales:modelAuth): #funcion que se ejecutará cuando se entre a l
         return JSONResponse(content=token) #se regresa el token
     else:
         return {"Aviso: ": "Credenciales incorrectas"}
-
     
 #EndPoint Consultar Usuarios (GET)
 @app.get("/todosUsuarios/", tags=["Operaciones CRUD"], dependencies=[Depends(BearerJWT())], response_model=List[modeloUsuario]) #declarar ruta del servidor
 def leer(): #funcion que se ejecutará cuando se entre a la ruta
     return usuarios
+
 
 #EndPoint POST
 @app.post("/usuarios/", response_model=modeloUsuario, tags=["Operaciones CRUD"]) #declarar ruta del servidor
@@ -68,6 +66,9 @@ def actualizar(id:int, usuarioActualizado:modeloUsuario):
             usuarios[index]= usuarioActualizado.model_dump() #funcion estructura de datos para las vistas
             return usuarios [index]
     raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+
+
 
 #EndPoint DELETE
 @app.delete("/usuarios/{id}", tags=["Operaciones CRUD"]) #declarar ruta del servidor
