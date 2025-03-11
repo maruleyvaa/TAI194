@@ -14,7 +14,6 @@ app= FastAPI(
 ) #mandar al constructor que queremos que tenga este objeto cuando se inicie
 #todo se hará a través de este objeto
 
-
 usuarios=[
     {"id":1, "nombre":"María Eugenia", "edad":"20","correo":"maru@example.com"},
     {"id":2, "nombre":"Karla", "edad":"22","correo":"karla@example.com"},
@@ -42,7 +41,6 @@ def auth(credenciales:modelAuth): #funcion que se ejecutará cuando se entre a l
 @app.get("/todosUsuarios/", tags=["Operaciones CRUD"], dependencies=[Depends(BearerJWT())], response_model=List[modeloUsuario]) #declarar ruta del servidor
 def leer(): #funcion que se ejecutará cuando se entre a la ruta
     return usuarios
-
 
 #EndPoint POST
 @app.post("/usuarios/", response_model=modeloUsuario, tags=["Operaciones CRUD"]) #declarar ruta del servidor
