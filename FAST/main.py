@@ -1,10 +1,12 @@
 from fastapi import FastAPI, HTTPException, Depends
 from typing import  List
 from pydantic import BaseModel
-from models import modeloUsuario, modelAuth
+from modelsPydantic import modeloUsuario, modelAuth
 from genToken import creartoken
 from middleware import BearerJWT
 from fastapi.responses import JSONResponse
+from DB.conexion import Session, engine, Base
+from models.modelsDB import User
 
 
 app= FastAPI(
@@ -13,6 +15,9 @@ app= FastAPI(
     version="1.0.0"
 ) #mandar al constructor que queremos que tenga este objeto cuando se inicie
 #todo se hará a través de este objeto
+
+
+Base.metadata.create_all(bind=engine)
 
 usuarios=[
     {"id":1, "nombre":"María Eugenia", "edad":"20","correo":"maru@example.com"},
@@ -46,15 +51,21 @@ def leer(): #funcion que se ejecutará cuando se entre a la ruta
 @app.post("/usuarios/", response_model=modeloUsuario, tags=["Operaciones CRUD"]) #declarar ruta del servidor
 #primero se pide el parametro y luego el tipo de datp que estamos usando
 def guardar(usuario:modeloUsuario): #se guarda como usuario diccionario para pedir todos los usuarios juntos
-    for usr in usuarios:
-        #si el usuario de la bd es igual al usuario de la peticion
-        if usr["id"]==usuario.id:
-            #entonces se mandará el mensaje de error que ya existe
-            raise HTTPException(status_code=400, detail="El usuario ya existe") #raise sirve para marcar un punto de quiebre (excepcion) en un ciclo
-    
+    db=Session() #se crea la sesion
+    try:
+        db.add(User(**usuario.model_dump())) #se agrega el usuario a la base de datos
+        db.commit() #se guarda el usuario
+        return JSONResponse(status_code=201,
+                            content={"mensaje": "Usuario guardado", ""
+                            "usuario": usuario.model_dump()}) #se regresa el mensaje de que se guardó el usuario
+    except Exception as e:
+        db.rollback()
+        return JSONResponse(status_code=500,
+                            content={"mensaje": "Error al guardar el usuario", 
+                                     "error": str(e)}) #se regresa el mensaje de que hubo un error al guardar el usuario
 
-    usuarios.append(usuario) #se agrega el usuario a la lista de usuarios
-    return usuario
+    finally:
+        db.close()
 
 #EndPoint PUT
 @app.put("/usuarios/{id}", response_model=modeloUsuario, tags=["Operaciones CRUD"]) #declarar ruta del servidor
