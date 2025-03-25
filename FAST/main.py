@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends
 from typing import  List
 from pydantic import BaseModel
+from fastapi.encoders import jsonable_encoder
 from modelsPydantic import modeloUsuario, modelAuth
 from genToken import creartoken
 from middleware import BearerJWT
@@ -43,9 +44,57 @@ def auth(credenciales:modelAuth): #funcion que se ejecutará cuando se entre a l
         return {"Aviso: ": "Credenciales incorrectas"}
     
 #EndPoint Consultar Usuarios (GET)
-@app.get("/todosUsuarios/", tags=["Operaciones CRUD"], dependencies=[Depends(BearerJWT())], response_model=List[modeloUsuario]) #declarar ruta del servidor
+@app.get("/todosUsuarios/", tags=["Operaciones CRUD"]) #declarar ruta del servidor
 def leer(): #funcion que se ejecutará cuando se entre a la ruta
-    return usuarios
+    db=Session()
+    try:
+        consulta=db.query(User).all()
+        return JSONResponse(content=jsonable_encoder(consulta))
+    
+    except Exception as e:
+        db.rollback()
+        return JSONResponse(status_code=500,
+                            content={"mensaje": "No fue posible consultar al usuario.", 
+                                     "error": str(e)}) #se regresa el mensaje de que hubo un error al guardar el usuario
+
+    finally:
+        db.close()
+
+
+#EndPoint PUT
+@app.put("/usuarios/{id}", response_model=modeloUsuario, tags=["Operaciones CRUD"]) #declarar ruta del servidor
+def leeruno(id:int, usuarioActualizado:modeloUsuario):
+    for index, usr in enumerate(usuarios):
+        if usr["id"]==id:
+            usuarios[index]= usuarioActualizado.model_dump() #funcion estructura de datos para las vistas
+            return usuarios [index]
+    raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+
+
+#EndPoint Consultar Usuarios por ID (GET)
+@app.get("/Usuario/{id}", tags=["Operaciones CRUD"]) #declarar ruta del servidor
+def leeruno(id:int): #funcion que se ejecutará cuando se entre a la ruta
+    db=Session()
+    try:
+        consulta1=db.query(User).filter(User.id==id).first()
+        if not consulta1:
+            return JSONResponse(status_code=404, content={'mensaje':"Usuario no encontrado"})
+        
+        return JSONResponse(content=jsonable_encoder(consulta1))
+    
+    except Exception as e:
+        db.rollback()
+        return JSONResponse(status_code=500,
+                            content={"mensaje": "No fue posible consultar al usuario.", 
+                                     "error": str(e)}) #se regresa el mensaje de que hubo un error al guardar el usuario
+
+    finally:
+        db.close()
+
+
+                                    
+ 
 
 #EndPoint POST
 @app.post("/usuarios/", response_model=modeloUsuario, tags=["Operaciones CRUD"]) #declarar ruta del servidor
